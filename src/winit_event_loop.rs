@@ -218,6 +218,8 @@ where
         // input, and uses significantly less power/CPU time than ControlFlow::Poll.
         event_loop.set_control_flow(ControlFlow::Wait);
 
+        self.cx.current_input.handle_event(&event);
+
         match event {
             WindowEvent::CloseRequested => {
                 log::debug!("The close button was pressed; stopping");
@@ -355,6 +357,9 @@ where
                         (context.config.height as f32 - position.y as f32) / scale,
                     ]
                     .into();
+
+                    self.cx.mouse_position = self.mouse_position;
+
                     // let event = Event::TouchMove {
                     //     id: 0,
                     //     position: self.mouse_position,

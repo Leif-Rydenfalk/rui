@@ -138,6 +138,7 @@ impl Context {
             touches: [ViewId::default(); 16],
             starts: [LocalPoint::zero(); 16],
             previous_position: [LocalPoint::zero(); 16],
+            mouse_position: LocalPoint::zero(),
             mouse_button: None,
             mouse_buttons: Default::default(),
             key_mods: Default::default(),

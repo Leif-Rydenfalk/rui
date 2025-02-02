@@ -29,9 +29,6 @@ pub use binding::*;
 mod context;
 pub use context::*;
 
-mod current_input;
-pub use current_input::*;
-
 mod views;
 pub use views::*;
 

@@ -54,6 +54,13 @@ fn flip_cards(v: Vec<FlipCard>) -> impl View {
 
         let flip_cards_count = v.len();
 
+        let base_color = v[cx[a].card_id].color;
+        let text_color = if base_color.r + base_color.g + base_color.b > 1.5 {
+            Color::gray(0.0)
+        } else {
+            Color::gray(1.0)
+        };
+
         zstack((
             rectangle()
                 .color(v[cx[a].card_id].color)
@@ -65,17 +72,14 @@ fn flip_cards(v: Vec<FlipCard>) -> impl View {
                     vstack((
                         text(text_title)
                             .font_size(20)
-                            .color(Color::gray(0.9))
+                            .color(text_color)
                             .padding(Auto),
-                        text(data)
-                            .font_size(20)
-                            .color(Color::gray(0.9))
-                            .padding(Auto),
+                        text(data).font_size(20).color(text_color).padding(Auto),
                     )),
                     spacer(),
                     text("tap to flip")
                         .font_size(13)
-                        .color(Color::gray(0.9))
+                        .color(text_color)
                         .padding(Auto),
                     spacer().size([0.0, 20.0]),
                 )),
@@ -214,9 +218,8 @@ fn flip_cards(v: Vec<FlipCard>) -> impl View {
 // Main function
 fn main() {
     let gradient = ConstEquidistantLinear::<f32, _, 2>::equidistant_unchecked([
-        LinSrgb::new(0.00, 0.05, 0.20),
         LinSrgb::new(0.70, 0.10, 0.20),
-        // LinSrgb::new(0.95, 0.90, 0.30),
+        LinSrgb::new(0.95, 0.90, 0.30),
     ]);
 
     let taken_colors: Vec<_> = gradient.take(10).collect();

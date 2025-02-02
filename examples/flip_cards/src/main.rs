@@ -243,7 +243,7 @@ fn flip_cards(v: Vec<FlipCard>) -> impl View {
         .offset(
             cx[a].animated_offset.unwrap_or_default() + cx[a].entrance_offset.unwrap_or_default(),
         )
-        .size([300.0, 200.0])
+        .size([350.0, 200.0])
         .drag(move |cx, offset, state, _| {
             // Handle drag events
             match state {
@@ -267,19 +267,14 @@ fn flip_cards(v: Vec<FlipCard>) -> impl View {
                                 Action::PreviousCard
                             });
                         }
-
-                        if !is_horizontal
-                            && (cx_offset.y < -200.0
-                                || cx[a].animated_offset_velocity.unwrap_or_default().y < -100.0)
-                        {
-                            cx[a].action = Some(Action::ToggleAnswer);
-                        }
                     }
 
                     cx[a].offset = None;
 
                     // On tap, toggle the answer visibility
-                    if cx[a].animated_offset_velocity.unwrap_or_default().x.abs() < 10.0 {
+                    if cx[a].animated_offset_velocity.unwrap_or_default().x.abs() < 10.0
+                        && cx[a].animated_offset_velocity.unwrap_or_default().y.abs() < 10.0
+                    {
                         cx[a].action = Some(Action::ToggleAnswer);
                     }
                 }
@@ -308,70 +303,68 @@ fn flip_cards(v: Vec<FlipCard>) -> impl View {
                 let new_offset =
                     animated_offset + cx[a].animated_offset_velocity.unwrap_or_default() * dt;
                 cx[a].animated_offset = Some(new_offset);
-            } else {
-                // Continue using the velocity to animate the offset
-                // if the user is not dragging the card
-                let target_offset = if let Some(exit) = &cx[a].action {
-                    match exit {
-                        Action::PreviousCard => LocalOffset::new(-1400.0, 0.0),
-                        Action::NextCard => LocalOffset::new(1400.0, 0.0),
-                        Action::ToggleAnswer => LocalOffset::new(0.0, -500.0),
-                    }
-                } else {
-                    LocalOffset::zero()
-                };
-
-                let diff = target_offset - cx[a].animated_offset.unwrap_or_default();
-
-                let is_horizontal = cx[a].animated_offset.unwrap_or_default().y.abs()
-                    < cx[a].animated_offset.unwrap_or_default().x.abs();
-
-                // If the x offset is far enough, perform the horizontal swipe action
-                if is_horizontal && cx[a].animated_offset.unwrap_or_default().x.abs() > 1000.0 {
-                    match &cx[a].action {
-                        Some(Action::PreviousCard) => {
-                            cx[a].show_answer = false;
-                            cx[a].action = None;
-                            cx[a].card_id =
-                                (cx[a].card_id + flip_cards_count - 1) % flip_cards_count;
-                            cx[a].animated_offset = Some(LocalOffset::new(500.0, 0.0));
-                        }
-                        Some(Action::NextCard) => {
-                            cx[a].show_answer = false;
-                            cx[a].action = None;
-                            cx[a].card_id = (cx[a].card_id + 1) % flip_cards_count;
-                            cx[a].animated_offset = Some(LocalOffset::new(-500.0, 0.0));
-                        }
-                        _ => {}
-                    }
-                }
-
-                // If the y offset is small enough, perform the show answer action
-                if !is_horizontal && cx[a].animated_offset.unwrap_or_default().y < -400.0 {
-                    match &cx[a].action {
-                        Some(Action::ToggleAnswer) => {
-                            cx[a].show_answer = !cx[a].show_answer;
-                            cx[a].action = None;
-                            cx[a].animated_offset = Some(LocalOffset::new(0.0, -500.0));
-                        }
-                        _ => {}
-                    }
-                }
-
-                let speed = 105.0;
-                let new_velocity =
-                    cx[a].animated_offset_velocity.unwrap_or_default() + diff * speed * dt;
-                cx[a].animated_offset_velocity = Some(new_velocity);
-
-                // Decay the velocity
-                let decay_speed = 10.0;
-                cx[a].animated_offset_velocity = cx[a]
-                    .animated_offset_velocity
-                    .map(|v| v * (1.0 - decay_speed * dt));
-                cx[a].animated_offset = cx[a]
-                    .animated_offset
-                    .map(|o| o + cx[a].animated_offset_velocity.unwrap_or_default() * dt);
             }
+
+            // Continue using the velocity to animate the offset
+            // if the user is not dragging the card
+            let target_offset = if let Some(exit) = &cx[a].action {
+                match exit {
+                    Action::PreviousCard => LocalOffset::new(-1400.0, 0.0),
+                    Action::NextCard => LocalOffset::new(1400.0, 0.0),
+                    Action::ToggleAnswer => LocalOffset::new(0.0, 200.0),
+                }
+            } else {
+                LocalOffset::zero()
+            };
+
+            let diff = target_offset - cx[a].animated_offset.unwrap_or_default();
+
+            let is_horizontal = cx[a].animated_offset.unwrap_or_default().y.abs()
+                < cx[a].animated_offset.unwrap_or_default().x.abs();
+
+            // If the x offset is far enough, perform the horizontal swipe action
+            if is_horizontal && cx[a].animated_offset.unwrap_or_default().x.abs() > 1000.0 {
+                match &cx[a].action {
+                    Some(Action::PreviousCard) => {
+                        cx[a].show_answer = false;
+                        cx[a].action = None;
+                        cx[a].card_id = (cx[a].card_id + flip_cards_count - 1) % flip_cards_count;
+                        cx[a].animated_offset = Some(LocalOffset::new(500.0, 0.0));
+                    }
+                    Some(Action::NextCard) => {
+                        cx[a].show_answer = false;
+                        cx[a].action = None;
+                        cx[a].card_id = (cx[a].card_id + 1) % flip_cards_count;
+                        cx[a].animated_offset = Some(LocalOffset::new(-500.0, 0.0));
+                    }
+                    _ => {}
+                }
+            }
+
+            // Perform the show answer action
+            if !is_horizontal && cx[a].animated_offset.unwrap_or_default().y > 40.0 {
+                match &cx[a].action {
+                    Some(Action::ToggleAnswer) => {
+                        cx[a].show_answer = !cx[a].show_answer;
+                        cx[a].action = None;
+                    }
+                    _ => {}
+                }
+            }
+
+            let speed = 105.0;
+            let new_velocity =
+                cx[a].animated_offset_velocity.unwrap_or_default() + diff * speed * dt;
+            cx[a].animated_offset_velocity = Some(new_velocity);
+
+            // Decay the velocity
+            let decay_speed = 10.0;
+            cx[a].animated_offset_velocity = cx[a]
+                .animated_offset_velocity
+                .map(|v| v * (1.0 - decay_speed * dt));
+            cx[a].animated_offset = cx[a]
+                .animated_offset
+                .map(|o| o + cx[a].animated_offset_velocity.unwrap_or_default() * dt);
         })
     })
 }

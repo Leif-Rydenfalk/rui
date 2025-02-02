@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2" # What does this do?
-members = [".", "./examples/flip_cards", "./examples/calculator", "./examples/synth"]
+members = [".", "./examples/*"]
 default-members = ["."]
 
 [workspace.dependencies]

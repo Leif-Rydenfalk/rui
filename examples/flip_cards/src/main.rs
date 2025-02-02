@@ -1,90 +1,90 @@
 use rui::vger::Color;
 use rui::*;
-use rust_search::SearchBuilder;
-use serde_json::{Map, Value};
-use std::collections::{HashSet, VecDeque};
-use std::fs;
+// use rust_search::SearchBuilder;
+// use serde_json::{Map, Value};
+// use std::collections::{HashSet, VecDeque};
+// use std::fs;
 use std::sync::Arc;
 
-// Function to find and extract flip cards from JSON data
-fn find_flip_cards(value: &Value) -> Vec<Value> {
-    let mut flip_cards = Vec::new();
+// // Function to find and extract flip cards from JSON data
+// fn find_flip_cards(value: &Value) -> Vec<Value> {
+//     let mut flip_cards = Vec::new();
 
-    // Define sets of possible keywords for "question" and "answer"
-    let question_keywords: HashSet<&str> = ["question", "q", "frontside"].iter().cloned().collect();
-    let answer_keywords: HashSet<&str> = ["answer", "a", "backside", "explanation", "solution"]
-        .iter()
-        .cloned()
-        .collect();
+//     // Define sets of possible keywords for "question" and "answer"
+//     let question_keywords: HashSet<&str> = ["question", "q", "frontside"].iter().cloned().collect();
+//     let answer_keywords: HashSet<&str> = ["answer", "a", "backside", "explanation", "solution"]
+//         .iter()
+//         .cloned()
+//         .collect();
 
-    // Use a stack (VecDeque) to mimic recursion
-    let mut stack = VecDeque::new();
-    stack.push_back(value);
+//     // Use a stack (VecDeque) to mimic recursion
+//     let mut stack = VecDeque::new();
+//     stack.push_back(value);
 
-    // While there are items on the stack, process them
-    while let Some(current_value) = stack.pop_front() {
-        match current_value {
-            Value::Object(map) => {
-                let mut question = None;
-                let mut answer = None;
+//     // While there are items on the stack, process them
+//     while let Some(current_value) = stack.pop_front() {
+//         match current_value {
+//             Value::Object(map) => {
+//                 let mut question = None;
+//                 let mut answer = None;
 
-                for (key, val) in map {
-                    // Check if the key matches any question keyword
-                    if question_keywords.contains(&key.to_lowercase().as_str()) {
-                        if let Some(q) = val.as_str() {
-                            question = Some(q.to_string());
-                        }
-                    }
+//                 for (key, val) in map {
+//                     // Check if the key matches any question keyword
+//                     if question_keywords.contains(&key.to_lowercase().as_str()) {
+//                         if let Some(q) = val.as_str() {
+//                             question = Some(q.to_string());
+//                         }
+//                     }
 
-                    // Check if the key matches any answer keyword
-                    if answer_keywords.contains(&key.to_lowercase().as_str()) {
-                        if let Some(a) = val.as_str() {
-                            answer = Some(a.to_string());
-                        }
-                    }
+//                     // Check if the key matches any answer keyword
+//                     if answer_keywords.contains(&key.to_lowercase().as_str()) {
+//                         if let Some(a) = val.as_str() {
+//                             answer = Some(a.to_string());
+//                         }
+//                     }
 
-                    // Add the value to the stack if it is an object or array (to process nested structures)
-                    if val.is_object() || val.is_array() {
-                        stack.push_back(val);
-                    }
-                }
+//                     // Add the value to the stack if it is an object or array (to process nested structures)
+//                     if val.is_object() || val.is_array() {
+//                         stack.push_back(val);
+//                     }
+//                 }
 
-                // If both question and answer were found, add the flip card
-                if let (Some(q), Some(a)) = (question, answer) {
-                    flip_cards.push(Value::Object({
-                        let mut map = Map::with_capacity(2);
-                        map.insert("q".to_string(), Value::String(q));
-                        map.insert("a".to_string(), Value::String(a));
-                        map
-                    }));
-                }
-            }
-            Value::Array(arr) => {
-                // If the current value is an array, push its elements to the stack
-                for item in arr {
-                    stack.push_back(item);
-                }
-            }
-            _ => {}
-        }
-    }
+//                 // If both question and answer were found, add the flip card
+//                 if let (Some(q), Some(a)) = (question, answer) {
+//                     flip_cards.push(Value::Object({
+//                         let mut map = Map::with_capacity(2);
+//                         map.insert("q".to_string(), Value::String(q));
+//                         map.insert("a".to_string(), Value::String(a));
+//                         map
+//                     }));
+//                 }
+//             }
+//             Value::Array(arr) => {
+//                 // If the current value is an array, push its elements to the stack
+//                 for item in arr {
+//                     stack.push_back(item);
+//                 }
+//             }
+//             _ => {}
+//         }
+//     }
 
-    flip_cards
-}
+//     flip_cards
+// }
 
-// Struct to represent the state of a flip card
-#[derive(Clone)]
-struct FlipCardState {
-    show_answer: bool,
-    question: Arc<str>,
-    answer: Arc<str>,
-}
+// // Struct to represent the state of a flip card
+// #[derive(Clone)]
+// struct FlipCardState {
+//     show_answer: bool,
+//     question: Arc<str>,
+//     answer: Arc<str>,
+// }
 
-// Struct to represent the state of all flip cards
-struct FlipCardsState {
-    flip_cards: Vec<FlipCardState>,
-    current_index: usize,
-}
+// // Struct to represent the state of all flip cards
+// struct FlipCardsState {
+//     flip_cards: Vec<FlipCardState>,
+//     current_index: usize,
+// }
 
 // // Main function
 // fn main() {
@@ -186,7 +186,6 @@ struct FlipCardAnimation {
     animated_offset: Option<LocalOffset>,
     animated_offset_velocity: Option<LocalOffset>,
     action: Option<Action>,
-    tab_action: Option<usize>,
     show_answer: bool,
     card_id: usize,
 }
@@ -236,6 +235,11 @@ fn flip_cards(v: Vec<FlipCard>) -> impl View {
                             .padding(Auto),
                     )),
                     spacer(),
+                    text("tap to flip")
+                        .font_size(13)
+                        .color(Color::gray(0.9))
+                        .padding(Auto),
+                    spacer().size([0.0, 20.0]),
                 )),
                 spacer(),
             )),
